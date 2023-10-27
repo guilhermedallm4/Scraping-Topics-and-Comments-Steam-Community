@@ -20,9 +20,6 @@ vectorCommentary = []
 #Settings driver Chrome 
 navegador = webdriver.Chrome(options=chrome_options)
 
-
-#url = 'https://steamcommunity.com/discussions/forum/27/3877095833478995953/'
-
 def jsonImport(info):
     dados_existentes = []
     archive = 'postAndCommentarySteam.json'
@@ -205,12 +202,15 @@ def getData(url):
         if a_tag:
             urlPerfilOwnerTopic = a_tag['href']
         else:
-            print("Tag 'a' não encontrada na div.")
+            urlPerfilOwnerTopic = None
     else:
-        print("Div com a classe especificada não encontrada.")
+        imageAndPerfil = None
     
     imageAutor = imageAndPerfil.find('img')
-    imageAutorOwnerTopic = imageAutor['src']
+    if imageAutor:
+        imageAutorOwnerTopic = imageAutor['src']
+    else:
+        imageAutorOwnerTopic = None
 
     #Get username
     
@@ -275,7 +275,6 @@ def getData(url):
     info['commentary'] = []
     getAllCommentary(url, soup, info)
 
- 
 def main():
     
     getInitialInf = 1
@@ -316,6 +315,5 @@ def main():
 
 #getData('https://steamcommunity.com/discussions/forum/27/135512625256910035/')
 #getAllCommentary('https://steamcommunity.com/discussions/forum/27/135512625256910035/')
-
 
 main()
