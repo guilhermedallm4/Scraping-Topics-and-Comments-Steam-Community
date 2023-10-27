@@ -15,7 +15,7 @@ chrome_options.add_argument('--headless')
 unique_links = set()
 unique_links_post = set()
 
-data = []
+vectorCommentary = []
 
 #Settings driver Chrome 
 navegador = webdriver.Chrome(options=chrome_options)
@@ -59,6 +59,102 @@ def getPageSource(url, maxscroll = 1):
     soup = BeautifulSoup(html_content, 'html.parser')
     
     return soup
+
+def getCountAllCommentary(soup):
+    indice = 1
+
+    links = soup.find('span', class_='commentthread_pagelinks').find_all('a')
+    
+    max_ctp = 0
+
+    if links:
+        for link in links:
+            href = link['href']
+            ctp = int(href.split('=')[-1])
+            max_ctp = max(max_ctp, ctp)
+    else:
+        max_ctp = 1
+    return max_ctp
+
+def getAllCommentary(newUrl, soup, info):
+
+    commentary = {}
+    
+    soup = getPageSource(newUrl, 1)
+    
+    html_content = navegador.page_source
+    
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    max_ctp = getCountAllCommentary(soup)
+    
+
+    for indice in range(1, max_ctp+1):
+        
+        url = f'{newUrl}?ctp={indice}'
+
+        if indice == 1: 
+            repostsTopic = soup.find_all('div', class_='commentthread_comment responsive_body_text')
+        else:   
+            soup = getPageSource(url, 1)
+            
+            html_content = navegador.page_source
+            
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            repostsTopic = soup.find_all('div', class_='commentthread_comment responsive_body_text')
+    
+        for response in repostsTopic:
+            
+            autorResponse = response.find('a', class_='hoverunderline commentthread_author_link')
+            
+            autorResponseLinkAndImage = response.find('div', class_=re.compile(r'commentthread_comment_avatar playerAvatar.*'))
+            
+            if autorResponseLinkAndImage:
+                a_tag = autorResponseLinkAndImage.find('a')
+
+                if a_tag:
+                    autorResponseUrl = a_tag['href']
+        
+            autorResponseImage = autorResponseLinkAndImage.find('img')
+            autorResponseImage = autorResponseImage['src']
+
+            autorResponseDateCreate = response.find('span', class_='commentthread_comment_timestamp')
+            
+            autorResponseText = response.find('div', class_='commentthread_comment_text')
+            commentary['urlReponse'] = url
+            if autorResponse:
+                autorResponse = autorResponse.text
+                commentary['autorResponse'] = autorResponse
+            else:
+                commentary['autorResponse'] = 'false'
+            
+            if autorResponseUrl:
+                commentary['autorResponseUrl'] = autorResponseUrl
+            else:
+                commentary['autorResponseUrl'] = 'false'
+            
+            if autorResponseImage:
+                commentary['autorResponseImage'] = autorResponseImage
+            else:
+                commentary['autorResponseImage'] = 'false'
+                
+            if autorResponseText:
+                autorResponseText = autorResponseText.text
+                commentary['autorResponseText'] = autorResponseText
+            else:
+                commentary['autorResponseText'] = 'false'
+            
+            if autorResponseDateCreate:
+                autorResponseDateCreate = autorResponseDateCreate['title']
+                commentary['autorResponseDateCreate'] = autorResponseDateCreate
+            else:
+                commentary['autorResponseDateCreate'] = 'false'
+            
+            
+            info['commentary'].append(commentary.copy())
+        
+    jsonImport(info)
     
 def acessAndGetLinksInPerfil(url):
     
@@ -134,10 +230,7 @@ def getData(url):
     dateCreate = soup.find('span', class_='date')
 
     #Get reposts
-    
-    repostsTopic = soup.find_all('div', class_='commentthread_comment responsive_body_text')
 
-    commentary = {}
     
     info = {}
     
@@ -180,59 +273,8 @@ def getData(url):
         info['dateCreate'] = 'false' 
     
     info['commentary'] = []
-    
-    vector = []
-    for response in repostsTopic:
-        
-        autorResponse = response.find('a', class_='hoverunderline commentthread_author_link')
-        
-        autorResponseLinkAndImage = response.find('div', class_=re.compile(r'commentthread_comment_avatar playerAvatar.*'))
-        
-        if autorResponseLinkAndImage:
-            a_tag = autorResponseLinkAndImage.find('a')
+    getAllCommentary(url, soup, info)
 
-            if a_tag:
-                autorResponseUrl = a_tag['href']
-    
-        autorResponseImage = autorResponseLinkAndImage.find('img')
-        autorResponseImage = autorResponseImage['src']
-
-        autorResponseDateCreate = response.find('span', class_='commentthread_comment_timestamp')
-        
-        autorResponseText = response.find('div', class_='commentthread_comment_text')
-
-        if autorResponse:
-            autorResponse = autorResponse.text
-            commentary['autorResponse'] = autorResponse
-        else:
-            commentary['autorResponse'] = 'false'
-        
-        if autorResponseImage:
-            commentary['autorResponseImage'] = autorResponseImage
-        else:
-            commentary['autorResponseImage'] = 'false'
-        
-        if autorResponseUrl:
-            commentary['autorResponseUrl'] = autorResponseUrl
-        else:
-            commentary['autorResponseUrl'] = 'false'
-            
-        if autorResponseDateCreate:
-            autorResponseDateCreate = autorResponseDateCreate['title']
-            commentary['autorResponseDateCreate'] = autorResponseDateCreate
-        else:
-            commentary['autorResponseDateCreate'] = 'false'
-        
-        if autorResponseText:
-            autorResponseText = autorResponseText.text
-            commentary['autorResponseText'] = autorResponseText
-        else:
-            commentary['autorResponseText'] = 'false'
-        
-        
-        info['commentary'].append(commentary.copy())
-        
-    jsonImport(info)    
  
 def main():
     
@@ -271,5 +313,9 @@ def main():
     
     for link in unique_links_post:
         getData(link)
+
+#getData('https://steamcommunity.com/discussions/forum/27/135512625256910035/')
+#getAllCommentary('https://steamcommunity.com/discussions/forum/27/135512625256910035/')
+
 
 main()
