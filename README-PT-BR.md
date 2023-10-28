@@ -1,4 +1,4 @@
-# Scraping Commentary Forum Steam
+# Raspagem de Topicos e Comentarios da Comunidade Steam
 
 ## Descrição do Código
 O código é um script em Python projetado para fazer o scraping de fóruns na plataforma Steam Community. Ele automatiza a extração de informações sobre tópicos e comentários em fóruns específicos e armazena esses dados em um formato JSON para posterior análise ou processamento.
