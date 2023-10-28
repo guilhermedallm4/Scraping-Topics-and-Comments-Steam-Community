@@ -266,7 +266,7 @@ def getData(url):
         info['subject'] = 'false' 
 
     if dateCreate:
-    # Acesse o atributo "title" para obter o texto desejado
+    
         dateCreate = dateCreate['title']
         info['dateCreate'] = dateCreate 
     else:
@@ -278,8 +278,7 @@ def getData(url):
 def main():
     
     getInitialInf = 1
-    
-    url = 'https://steamcommunity.com/discussions/forum/27/?fp={getInitialInf}'
+    url = f'https:\/\/steamcommunity\.com\/discussions\/forum\/\d+\/\d+\/?fp={getInitialInf}'
     
     match = re.search(r'/forum/(\d+)/', url)
 
@@ -288,7 +287,7 @@ def main():
     
     xpathNumber = f'//*[@id="forum_General_4009259_{numberForum}_pagelinks"]/a[7]'
     
-    soup = getPageSource(f'https://steamcommunity.com/discussions/forum/27/?fp={getInitialInf}', 1)
+    soup = getPageSource(url, 1)
 
     numberMax = navegador.find_element(By.XPATH, xpathNumber)
     
@@ -313,7 +312,5 @@ def main():
     for link in unique_links_post:
         getData(link)
 
-#getData('https://steamcommunity.com/discussions/forum/27/135512625256910035/')
-#getAllCommentary('https://steamcommunity.com/discussions/forum/27/135512625256910035/')
 
 main()
